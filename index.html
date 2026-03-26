@@ -114,7 +114,7 @@
         background: var(--warm-white);
         border: 2px dashed var(--border);
         border-radius: 16px;
-        min-height: 420px;
+        min-height: 280px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -247,13 +247,15 @@
         align-items: center;
         justify-content: center;
         padding: 24px;
-        min-height: 420px;
+        min-height: 280px;
         position: relative;
       }
 
       .preview-wrapper canvas {
         max-width: 100%;
-        max-height: 460px;
+        max-height: 60vw;
+        width: auto !important;
+        height: auto !important;
         box-shadow: var(--shadow-lg);
         display: block;
       }
@@ -565,10 +567,30 @@
           padding: 16px 20px;
         }
         main {
-          padding: 32px 16px;
+          padding: 24px 16px;
         }
         .tagline {
           display: none;
+        }
+        .hero {
+          margin-bottom: 28px;
+        }
+        .hero h1 {
+          font-size: 28px;
+        }
+        .preview-wrapper canvas {
+          max-width: calc(100vw - 80px);
+          max-height: none;
+        }
+        .controls {
+          padding: 20px;
+          gap: 18px;
+        }
+        .ratio-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .how-it-works {
+          margin-top: 40px;
         }
       }
 
@@ -867,7 +889,6 @@
     </footer>
 
     <script>
-      // State
       let originalImage = null;
       let settings = {
         ratioW: 1,
@@ -877,14 +898,12 @@
         exportSize: 1080,
       };
 
-      // File input
       document.getElementById("file-input").addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) loadFile(file);
         e.target.value = "";
       });
 
-      // Drag & drop
       const dropZone = document.getElementById("dropZone");
       dropZone.addEventListener("dragover", (e) => {
         e.preventDefault();
@@ -901,9 +920,8 @@
       });
 
       dropZone.addEventListener("click", (e) => {
-        if (!originalImage && e.target === dropZone) {
+        if (!originalImage && e.target === dropZone)
           document.getElementById("file-input").click();
-        }
       });
 
       function loadFile(file) {
@@ -924,45 +942,54 @@
         reader.readAsDataURL(file);
       }
 
-      function computeLayout(imgW, imgH, borderPercent, ratioW, ratioH) {
-        // Step 1: figure out the target canvas aspect ratio
-        let targetRatio;
-        if (ratioW === 0) {
-          targetRatio = imgW / imgH; // keep original
-        } else {
-          targetRatio = ratioW / ratioH;
+      // Core layout logic:
+      // - Image is NEVER scaled or cropped — always drawn at native pixel dimensions
+      // - borderPercent adds uniform padding on all 4 sides (as % of image's larger dimension)
+      // - If a target ratio is selected, the canvas is expanded on one axis so the
+      //   total output matches that ratio (extra border fills the gap)
+      function computeLayout(
+        imgW,
+        imgH,
+        borderPercent,
+        ratioW,
+        ratioH,
+        exportSize,
+      ) {
+        // 1. Border thickness: % of the image's larger dimension
+        const imgLarger = Math.max(imgW, imgH);
+        let borderPx = Math.round((imgLarger * borderPercent) / 100);
+
+        // 2. Canvas starts as image + equal border on all sides
+        let outW = imgW + borderPx * 2;
+        let outH = imgH + borderPx * 2;
+
+        // 3. If a target ratio is requested, expand the shorter axis
+        if (ratioW !== 0) {
+          const targetRatio = ratioW / ratioH;
+          const currentRatio = outW / outH;
+          if (currentRatio < targetRatio) {
+            // too tall — expand width
+            outW = Math.round(outH * targetRatio);
+          } else if (currentRatio > targetRatio) {
+            // too wide — expand height
+            outH = Math.round(outW / targetRatio);
+          }
         }
 
-        // Step 2: choose a working resolution based on the image's larger dimension
-        const base = Math.max(imgW, imgH);
-
-        // Step 3: derive canvas size at target ratio, using `base` as the larger side
-        let outW, outH;
-        if (targetRatio >= 1) {
-          outW = base;
-          outH = Math.round(base / targetRatio);
-        } else {
-          outH = base;
-          outW = Math.round(base * targetRatio);
+        // 4. Scale everything to exportSize if needed
+        let scale = 1;
+        if (exportSize !== "original") {
+          scale = exportSize / Math.max(outW, outH);
         }
 
-        // Step 4: border in pixels — borderPercent is total border (both sides combined)
-        const borderPx = Math.round(
-          (Math.max(outW, outH) * (borderPercent / 2)) / 100,
-        );
-
-        // Step 5: available photo area inside borders
-        const photoW = outW - borderPx * 2;
-        const photoH = outH - borderPx * 2;
-
-        // Step 6: fit image into photo area (contain, preserve aspect)
-        const scale = Math.min(photoW / imgW, photoH / imgH);
+        const finalW = Math.round(outW * scale);
+        const finalH = Math.round(outH * scale);
         const drawW = Math.round(imgW * scale);
         const drawH = Math.round(imgH * scale);
-        const drawX = borderPx + Math.round((photoW - drawW) / 2);
-        const drawY = borderPx + Math.round((photoH - drawH) / 2);
+        const drawX = Math.round((finalW - drawW) / 2);
+        const drawY = Math.round((finalH - drawH) / 2);
 
-        return { outW, outH, borderPx, drawX, drawY, drawW, drawH };
+        return { outW: finalW, outH: finalH, drawX, drawY, drawW, drawH };
       }
 
       function renderPreview() {
@@ -973,12 +1000,14 @@
         const imgW = originalImage.naturalWidth;
         const imgH = originalImage.naturalHeight;
 
+        // Preview always renders at native resolution (no export scaling)
         const { outW, outH, drawX, drawY, drawW, drawH } = computeLayout(
           imgW,
           imgH,
           settings.borderPercent,
           settings.ratioW,
           settings.ratioH,
+          "original",
         );
 
         canvas.width = outW;
@@ -987,8 +1016,9 @@
         ctx.fillRect(0, 0, outW, outH);
         ctx.drawImage(originalImage, drawX, drawY, drawW, drawH);
 
-        // Scale preview for display
-        const maxDisplay = 480;
+        // Scale canvas element for display — fit within container
+        const wrapper = document.getElementById("previewWrapper");
+        const maxDisplay = Math.min(480, wrapper.clientWidth - 48);
         const displayScale = Math.min(1, maxDisplay / Math.max(outW, outH));
         canvas.style.width = Math.round(outW * displayScale) + "px";
         canvas.style.height = Math.round(outH * displayScale) + "px";
@@ -1045,34 +1075,14 @@
         const imgW = originalImage.naturalWidth;
         const imgH = originalImage.naturalHeight;
 
-        // Get layout at native resolution
-        let { outW, outH, drawX, drawY, drawW, drawH } = computeLayout(
+        const { outW, outH, drawX, drawY, drawW, drawH } = computeLayout(
           imgW,
           imgH,
           settings.borderPercent,
           settings.ratioW,
           settings.ratioH,
+          settings.exportSize,
         );
-
-        // Scale to export size if needed
-        if (settings.exportSize !== "original") {
-          const s = settings.exportSize / Math.max(outW, outH);
-          // Re-run layout at the target export resolution
-          const scaled = computeLayout(
-            Math.round(imgW * s),
-            Math.round(imgH * s),
-            settings.borderPercent,
-            settings.ratioW,
-            settings.ratioH,
-          );
-          // Use scaled outW/outH but draw original image into scaled positions
-          outW = scaled.outW;
-          outH = scaled.outH;
-          drawX = scaled.drawX;
-          drawY = scaled.drawY;
-          drawW = scaled.drawW;
-          drawH = scaled.drawH;
-        }
 
         canvas.width = outW;
         canvas.height = outH;
