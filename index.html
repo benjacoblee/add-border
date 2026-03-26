@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add White Border to Photos</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap");
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --cream: #faf8f5;
+        --warm-white: #ffffff;
+        --ink: #1a1814;
+        --muted: #7a756e;
+        --border: #e8e4de;
+        --accent: #2d5a27;
+        --accent-light: #e8f0e6;
+        --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--cream);
+        color: var(--ink);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        background: var(--warm-white);
+        border-bottom: 1px solid var(--border);
+        padding: 18px 40px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        font-family: "Fraunces", serif;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: -0.3px;
+      }
+
+      .logo span {
+        color: var(--accent);
+      }
+
+      .tagline {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 300;
+        border-left: 1px solid var(--border);
+        padding-left: 12px;
+        margin-left: 4px;
+      }
+
+      main {
+        flex: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 24px;
+        width: 100%;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+
+      .hero h1 {
+        font-family: "Fraunces", serif;
+        font-size: clamp(32px, 5vw, 52px);
+        font-weight: 300;
+        line-height: 1.15;
+        letter-spacing: -1px;
+        margin-bottom: 14px;
+      }
+
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 16px;
+        font-weight: 300;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      .app-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 28px;
+        align-items: start;
+      }
+
+      /* Drop zone */
+      .drop-zone {
+        background: var(--warm-white);
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        min-height: 420px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .drop-zone:hover,
+      .drop-zone.dragover {
+        border-color: var(--accent);
+        background: var(--accent-light);
+      }
+
+      .drop-zone.has-image {
+        border-style: solid;
+        border-color: var(--border);
+        background: #f0f0f0;
+        cursor: default;
+        padding: 0;
+      }
+
+      .drop-placeholder {
+        text-align: center;
+        padding: 40px;
+        pointer-events: none;
+      }
+
+      .drop-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--accent-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 26px;
+      }
+
+      .drop-placeholder h3 {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      .drop-placeholder p {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 300;
+        margin-bottom: 20px;
+      }
+
+      .btn-primary {
+        background: var(--ink);
+        color: white;
+        border: none;
+        padding: 11px 24px;
+        border-radius: 8px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        pointer-events: all;
+      }
+
+      .btn-primary:hover {
+        background: #333;
+        transform: translateY(-1px);
+      }
+
+      .btn-accent {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 13px 28px;
+        border-radius: 10px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-accent:hover {
+        background: #245020;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(45, 90, 39, 0.3);
+      }
+      .btn-accent:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .btn-ghost:hover {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+
+      /* Preview canvas wrapper */
+      .preview-wrapper {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        min-height: 420px;
+        position: relative;
+      }
+
+      .preview-wrapper canvas {
+        max-width: 100%;
+        max-height: 460px;
+        box-shadow: var(--shadow-lg);
+        display: block;
+      }
+
+      .change-photo-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        color: var(--ink);
+        transition: all 0.15s ease;
+      }
+
+      .change-photo-btn:hover {
+        background: white;
+        box-shadow: var(--shadow);
+      }
+
+      /* Controls panel */
+      .controls {
+        background: var(--warm-white);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .controls-title {
+        font-family: "Fraunces", serif;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .control-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+      }
+
+      /* Preset aspect ratios */
+      .ratio-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .ratio-btn {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 4px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: "DM Sans", sans-serif;
+      }
+
+      .ratio-btn:hover {
+        border-color: var(--accent);
+        background: var(--accent-light);
+      }
+      .ratio-btn.active {
+        border-color: var(--accent);
+        background: var(--accent-light);
+        color: var(--accent);
+      }
+
+      .ratio-btn .ratio-label {
+        font-size: 12px;
+        font-weight: 600;
+        display: block;
+      }
+      .ratio-btn .ratio-sub {
+        font-size: 10px;
+        color: var(--muted);
+        display: block;
+        margin-top: 1px;
+      }
+      .ratio-btn.active .ratio-sub {
+        color: var(--accent);
+        opacity: 0.7;
+      }
+
+      /* Border size slider */
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        flex: 1;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--ink);
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+      }
+
+      .slider-value {
+        font-size: 13px;
+        font-weight: 600;
+        min-width: 36px;
+        text-align: right;
+        color: var(--ink);
+      }
+
+      /* Color picker */
+      .color-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .color-swatch {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+        position: relative;
+      }
+
+      .color-swatch:hover {
+        transform: scale(1.15);
+      }
+      .color-swatch.active {
+        border-color: var(--ink);
+      }
+
+      .color-swatch.custom {
+        background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .color-swatch.custom input[type="color"] {
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        border: none;
+      }
+
+      /* Output size */
+      .size-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .size-btn {
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: "DM Sans", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .size-btn:hover {
+        border-color: var(--accent);
+        background: var(--accent-light);
+      }
+      .size-btn.active {
+        border-color: var(--accent);
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* Divider */
+      .divider {
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* Info badges */
+      .badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .badge {
+        font-size: 11px;
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: var(--accent-light);
+        color: var(--accent);
+      }
+
+      /* How it works */
+      .how-it-works {
+        margin-top: 64px;
+        text-align: center;
+      }
+
+      .how-it-works h2 {
+        font-family: "Fraunces", serif;
+        font-size: 28px;
+        font-weight: 300;
+        margin-bottom: 36px;
+        letter-spacing: -0.5px;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+
+      .step {
+        background: var(--warm-white);
+        border-radius: 14px;
+        padding: 28px 24px;
+        text-align: left;
+        border: 1px solid var(--border);
+      }
+
+      .step-num {
+        font-family: "Fraunces", serif;
+        font-size: 40px;
+        font-weight: 300;
+        color: var(--accent);
+        opacity: 0.5;
+        line-height: 1;
+        margin-bottom: 12px;
+      }
+
+      .step h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .step p {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 300;
+        line-height: 1.5;
+      }
+
+      footer {
+        text-align: center;
+        padding: 32px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 300;
+        margin-top: 48px;
+      }
+
+      #file-input {
+        display: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .app-grid {
+          grid-template-columns: 1fr;
+        }
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        header {
+          padding: 16px 20px;
+        }
+        main {
+          padding: 32px 16px;
+        }
+        .tagline {
+          display: none;
+        }
+      }
+
+      /* Loading state */
+      .processing-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        font-size: 14px;
+        color: var(--muted);
+        gap: 10px;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">Border<span>Studio</span></div>
+      <div class="tagline">Free online photo border tool</div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>Add borders to your photos,<br /><em>instantly & free.</em></h1>
+        <p>
+          Perfect square borders for Instagram, or custom ratios for any
+          platform. No signup, no watermarks.
+        </p>
+      </div>
+
+      <div class="app-grid">
+        <!-- Left: Drop zone / Preview -->
+        <div>
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-placeholder" id="dropPlaceholder">
+              <div class="drop-icon">🖼️</div>
+              <h3>Drop your photo here</h3>
+              <p>
+                Supports JPG, PNG, WEBP — up to 50MB<br />Processing happens in
+                your browser
+              </p>
+              <button
+                class="btn-primary"
+                onclick="document.getElementById('file-input').click()"
+              >
+                Choose Photo
+              </button>
+            </div>
+            <div
+              class="preview-wrapper"
+              id="previewWrapper"
+              style="display: none"
+            >
+              <canvas id="previewCanvas"></canvas>
+              <button
+                class="change-photo-btn"
+                onclick="document.getElementById('file-input').click()"
+              >
+                Change photo
+              </button>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept="image/*" />
+        </div>
+
+        <!-- Right: Controls -->
+        <div class="controls">
+          <div class="controls-title">Border Settings</div>
+
+          <div class="control-group">
+            <div class="control-label">Output Ratio</div>
+            <div class="ratio-grid">
+              <div
+                class="ratio-btn active"
+                data-ratio="1:1"
+                onclick="setRatio(this, 1, 1)"
+              >
+                <span class="ratio-label">1:1</span>
+                <span class="ratio-sub">Square</span>
+              </div>
+              <div
+                class="ratio-btn"
+                data-ratio="4:5"
+                onclick="setRatio(this, 4, 5)"
+              >
+                <span class="ratio-label">4:5</span>
+                <span class="ratio-sub">Portrait</span>
+              </div>
+              <div
+                class="ratio-btn"
+                data-ratio="5:4"
+                onclick="setRatio(this, 5, 4)"
+              >
+                <span class="ratio-label">5:4</span>
+                <span class="ratio-sub">Landscape</span>
+              </div>
+              <div
+                class="ratio-btn"
+                data-ratio="9:16"
+                onclick="setRatio(this, 9, 16)"
+              >
+                <span class="ratio-label">9:16</span>
+                <span class="ratio-sub">Story</span>
+              </div>
+              <div
+                class="ratio-btn"
+                data-ratio="16:9"
+                onclick="setRatio(this, 16, 9)"
+              >
+                <span class="ratio-label">16:9</span>
+                <span class="ratio-sub">Wide</span>
+              </div>
+              <div
+                class="ratio-btn"
+                data-ratio="original"
+                onclick="setRatio(this, 0, 0)"
+              >
+                <span class="ratio-label">Orig</span>
+                <span class="ratio-sub">Keep</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">Border Size</div>
+            <div class="slider-row">
+              <input
+                type="range"
+                id="borderSize"
+                min="0"
+                max="50"
+                value="5"
+                oninput="updateBorderSize(this)"
+              />
+              <span class="slider-value" id="borderSizeVal">5%</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">Border Color</div>
+            <div class="color-row">
+              <div
+                class="color-swatch active"
+                style="background: #ffffff; border-color: #ccc"
+                title="White"
+                onclick="setColor(this, '#ffffff')"
+              ></div>
+              <div
+                class="color-swatch"
+                style="background: #f5f0e8"
+                title="Cream"
+                onclick="setColor(this, '#f5f0e8')"
+              ></div>
+              <div
+                class="color-swatch"
+                style="background: #1a1814"
+                title="Black"
+                onclick="setColor(this, '#1a1814')"
+              ></div>
+              <div
+                class="color-swatch"
+                style="background: #d4c5a9"
+                title="Tan"
+                onclick="setColor(this, '#d4c5a9')"
+              ></div>
+              <div
+                class="color-swatch"
+                style="background: #e8e4de"
+                title="Gray"
+                onclick="setColor(this, '#e8e4de')"
+              ></div>
+              <div class="color-swatch custom" title="Custom color">
+                <input
+                  type="color"
+                  id="customColor"
+                  value="#ffffff"
+                  oninput="setCustomColor(this)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="control-group">
+            <div class="control-label">Export Size</div>
+            <div class="size-grid">
+              <div
+                class="size-btn active"
+                data-size="1080"
+                onclick="setExportSize(this, 1080)"
+              >
+                1080px
+              </div>
+              <div
+                class="size-btn"
+                data-size="1440"
+                onclick="setExportSize(this, 1440)"
+              >
+                1440px
+              </div>
+              <div
+                class="size-btn"
+                data-size="2160"
+                onclick="setExportSize(this, 2160)"
+              >
+                2160px
+              </div>
+              <div
+                class="size-btn"
+                data-size="original"
+                onclick="setExportSize(this, 'original')"
+              >
+                Original
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="btn-accent"
+            id="downloadBtn"
+            onclick="downloadImage()"
+            disabled
+          >
+            ⬇ Download Photo
+          </button>
+          <button
+            class="btn-ghost"
+            id="resetBtn"
+            onclick="resetAll()"
+            style="display: none"
+          >
+            Start over
+          </button>
+
+          <div class="badges">
+            <span class="badge">✓ Free forever</span>
+            <span class="badge">✓ No watermark</span>
+            <span class="badge">✓ Private</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="how-it-works">
+        <h2>How it works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h3>Upload your photo</h3>
+            <p>
+              Drag & drop or click to upload. Your photo never leaves your
+              device — everything runs in the browser.
+            </p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h3>Adjust settings</h3>
+            <p>
+              Choose your output ratio, border thickness, and border color. The
+              preview updates live.
+            </p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h3>Download & share</h3>
+            <p>
+              Hit download to save your bordered photo as a high-quality JPEG,
+              ready to post anywhere.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      All processing happens in your browser. Your photos are never uploaded to
+      any server.
+    </footer>
+
+    <script>
+      // State
+      let originalImage = null;
+      let settings = {
+        ratioW: 1,
+        ratioH: 1,
+        borderPercent: 8,
+        borderColor: "#ffffff",
+        exportSize: 1080,
+      };
+
+      // File input
+      document.getElementById("file-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) loadFile(file);
+        e.target.value = "";
+      });
+
+      // Drag & drop
+      const dropZone = document.getElementById("dropZone");
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("dragover"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) loadFile(file);
+      });
+
+      dropZone.addEventListener("click", (e) => {
+        if (!originalImage && e.target === dropZone) {
+          document.getElementById("file-input").click();
+        }
+      });
+
+      function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            originalImage = img;
+            document.getElementById("dropPlaceholder").style.display = "none";
+            document.getElementById("previewWrapper").style.display = "flex";
+            dropZone.classList.add("has-image");
+            document.getElementById("downloadBtn").disabled = false;
+            document.getElementById("resetBtn").style.display = "block";
+            renderPreview();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function computeLayout(imgW, imgH, borderPercent, ratioW, ratioH) {
+        // Step 1: figure out the target canvas aspect ratio
+        let targetRatio;
+        if (ratioW === 0) {
+          targetRatio = imgW / imgH; // keep original
+        } else {
+          targetRatio = ratioW / ratioH;
+        }
+
+        // Step 2: choose a working resolution based on the image's larger dimension
+        const base = Math.max(imgW, imgH);
+
+        // Step 3: derive canvas size at target ratio, using `base` as the larger side
+        let outW, outH;
+        if (targetRatio >= 1) {
+          outW = base;
+          outH = Math.round(base / targetRatio);
+        } else {
+          outH = base;
+          outW = Math.round(base * targetRatio);
+        }
+
+        // Step 4: border in pixels — borderPercent is total border (both sides combined)
+        const borderPx = Math.round(
+          (Math.max(outW, outH) * (borderPercent / 2)) / 100,
+        );
+
+        // Step 5: available photo area inside borders
+        const photoW = outW - borderPx * 2;
+        const photoH = outH - borderPx * 2;
+
+        // Step 6: fit image into photo area (contain, preserve aspect)
+        const scale = Math.min(photoW / imgW, photoH / imgH);
+        const drawW = Math.round(imgW * scale);
+        const drawH = Math.round(imgH * scale);
+        const drawX = borderPx + Math.round((photoW - drawW) / 2);
+        const drawY = borderPx + Math.round((photoH - drawH) / 2);
+
+        return { outW, outH, borderPx, drawX, drawY, drawW, drawH };
+      }
+
+      function renderPreview() {
+        if (!originalImage) return;
+        const canvas = document.getElementById("previewCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const imgW = originalImage.naturalWidth;
+        const imgH = originalImage.naturalHeight;
+
+        const { outW, outH, drawX, drawY, drawW, drawH } = computeLayout(
+          imgW,
+          imgH,
+          settings.borderPercent,
+          settings.ratioW,
+          settings.ratioH,
+        );
+
+        canvas.width = outW;
+        canvas.height = outH;
+        ctx.fillStyle = settings.borderColor;
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(originalImage, drawX, drawY, drawW, drawH);
+
+        // Scale preview for display
+        const maxDisplay = 480;
+        const displayScale = Math.min(1, maxDisplay / Math.max(outW, outH));
+        canvas.style.width = Math.round(outW * displayScale) + "px";
+        canvas.style.height = Math.round(outH * displayScale) + "px";
+      }
+
+      function setRatio(el, w, h) {
+        document
+          .querySelectorAll(".ratio-btn")
+          .forEach((b) => b.classList.remove("active"));
+        el.classList.add("active");
+        settings.ratioW = w;
+        settings.ratioH = h;
+        renderPreview();
+      }
+
+      function updateBorderSize(el) {
+        settings.borderPercent = parseInt(el.value);
+        document.getElementById("borderSizeVal").textContent = el.value + "%";
+        renderPreview();
+      }
+
+      function setColor(el, color) {
+        document
+          .querySelectorAll(".color-swatch")
+          .forEach((s) => s.classList.remove("active"));
+        el.classList.add("active");
+        settings.borderColor = color;
+        renderPreview();
+      }
+
+      function setCustomColor(el) {
+        document
+          .querySelectorAll(".color-swatch")
+          .forEach((s) => s.classList.remove("active"));
+        el.closest(".color-swatch").classList.add("active");
+        settings.borderColor = el.value;
+        renderPreview();
+      }
+
+      function setExportSize(el, size) {
+        document
+          .querySelectorAll(".size-btn")
+          .forEach((b) => b.classList.remove("active"));
+        el.classList.add("active");
+        settings.exportSize = size;
+      }
+
+      function downloadImage() {
+        if (!originalImage) return;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const imgW = originalImage.naturalWidth;
+        const imgH = originalImage.naturalHeight;
+
+        // Get layout at native resolution
+        let { outW, outH, drawX, drawY, drawW, drawH } = computeLayout(
+          imgW,
+          imgH,
+          settings.borderPercent,
+          settings.ratioW,
+          settings.ratioH,
+        );
+
+        // Scale to export size if needed
+        if (settings.exportSize !== "original") {
+          const s = settings.exportSize / Math.max(outW, outH);
+          // Re-run layout at the target export resolution
+          const scaled = computeLayout(
+            Math.round(imgW * s),
+            Math.round(imgH * s),
+            settings.borderPercent,
+            settings.ratioW,
+            settings.ratioH,
+          );
+          // Use scaled outW/outH but draw original image into scaled positions
+          outW = scaled.outW;
+          outH = scaled.outH;
+          drawX = scaled.drawX;
+          drawY = scaled.drawY;
+          drawW = scaled.drawW;
+          drawH = scaled.drawH;
+        }
+
+        canvas.width = outW;
+        canvas.height = outH;
+        ctx.fillStyle = settings.borderColor;
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(originalImage, drawX, drawY, drawW, drawH);
+
+        canvas.toBlob(
+          (blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.download = "bordered-photo.jpg";
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          },
+          "image/jpeg",
+          0.95,
+        );
+      }
+
+      function resetAll() {
+        originalImage = null;
+        document.getElementById("dropPlaceholder").style.display = "block";
+        document.getElementById("previewWrapper").style.display = "none";
+        dropZone.classList.remove("has-image");
+        document.getElementById("downloadBtn").disabled = true;
+        document.getElementById("resetBtn").style.display = "none";
+      }
+    </script>
+  </body>
+</html>
